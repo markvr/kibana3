@@ -1,0 +1,17 @@
+<div ng-controller='uob' ng-init="init()" class="uob-terms-panel">
+
+  <div class="uob-fake-table">
+    <div class="uob-fake-row">
+      <div ng-repeat = "column in data" class="uob-fake-cell">
+        <ul ng-style="panel.style">
+          <li 
+            ng-repeat="term in column" 
+            ng-click="build_search(term, $parent.$index)"
+          >
+            <span ng-class="{'uob-active' : isSelected(term, $parent.$index)}">  {{term.label}} ({{term.count}})</span>
+          </li> 
+        </ul>
+      </div>
+    </div>
+  </div>
+<hr style="clear:both"/>
