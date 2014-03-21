@@ -1,18 +1,18 @@
-/** @scratch /panels/5
- * include::panels/terms.asciidoc[]
- */
-
-/** @scratch /panels/terms/0
- * == terms
- * Status: *Stable*
+/** 
+ * A panel that uses "tags" added to the logs to provide an easy way to drill down into logs
  *
- * A table, bar chart or pie chart based on the results of an Elasticsearch terms facet.
+ * "Tags" are simply log fields prefixed with a given text and an integer increment.  e.g. a prefix of "tag_",
+ * uses a list of fields called "tag_0", "tag_1" etc.
+ *
+ * Tags should have a logical hierarchy in the log domain.  They are then displayed in columns in the panel, i.e.
+ * column 0 lists all distinct values for tag_0.  When an entry in column 0 is selected, then column 1 lists all
+ * distinct values for log entries that have tag_0 == the selected entry in column 0.  It's simpler than it sounds!
  *
  */
 define([
   'angular',
   'app',
-  'underscore',
+  'lodash',
   'jquery',
   'kbn'
 ],
@@ -42,42 +42,9 @@ function (angular, app, _, $, kbn) {
 
     // Set and populate defaults
     var _d = {
-      /** @scratch /panels/terms/5
-       * === Parameters
-       *
-       * field:: The field on which to computer the facet
-       */
-      field   : 'tag_', 
-      /** @scratch /panels/terms/5
-       * exclude:: terms to exclude from the results
-       */
-      exclude : [],
-      /** @scratch /panels/terms/5
-       * missing:: Set to false to disable the display of a counter showing how much results are
-       * missing the field
-       */
-      missing : true,
-      /** @scratch /panels/terms/5
-       * other:: Set to false to disable the display of a counter representing the aggregate of all
-       * values outside of the scope of your +size+ property
-       */
-      other   : true,
-      /** @scratch /panels/terms/5
-       * size:: Show this many terms
-       */
-      size    : 10,
-      /** @scratch /panels/terms/5
-       * order:: count, term, reverse_count or reverse_term
-       */
+      field   : 'tag_',   // Default tag prefix
       order   : 'term',
       style   : { "font-size": '10pt'},
-      /** @scratch /panels/terms/5
-       * chart:: table, bar or pie
-       */
-      chart       : 'table',
-      /** @scratch /panels/terms/5
-       * spyable:: Set spyable to false to disable the inspect button
-       */
       spyable     : true,
       /** @scratch /panels/terms/5
        * ==== Queries
@@ -90,27 +57,33 @@ function (angular, app, _, $, kbn) {
         ids         : []
       },
     };
-    _.defaults($scope.panel,_d);
+
+    _.defaults($scope.panel,_d);  // Set the defaults onto the panel
     
-    $scope.level = 0;
-    
-    
+    $scope.level = 0; // The level of tags that is selected.  Start at 0.
     
     // Array to hold a sequence of objects defining terms that have been selected.
-    // selectedTerm = {filterSrvId : <id>, term: <string>}
+    // selectedTerm = {filterSrvId : <id>, term: term}
     var selectedTermsList = [];
-    
-
-    
     
     $scope.init = function () {
       $scope.hits = 0;
 
+      // Used in case we are loading from a saved configuration that contains selected tags
+      // Iterate over the existing filters, and find any that match our tag prefix.  If they do,
+      // then add them to the selectedTerms list.
+      _.each(filterSrv.list, function(filter) {
+        if (typeof filter.field !== "undefined" && filter.field.indexOf($scope.panel.field) !== -1) {
+          var field_num = parseInt(filter.field.split($scope.panel.field)[1]);
+          selectedTermsList[field_num] = {"filterSrvId":filter.id, "term": {"label" : filter.value}};
+        }
+      });
+
       $scope.$on('refresh',function(){
         $scope.get_data();
       });
-      $scope.get_data();
 
+      $scope.get_data();
     };
 
 
@@ -147,18 +120,27 @@ function (angular, app, _, $, kbn) {
        * in parallel
        *.
        */
+      
+      // Array to hold the results of the queries.  Each entry corresponds to a column in the panel, and takes the form:
+      // $scope.data = [
+      //  [{ label : v.term, count : v.count}, ...]
+      // ];
       $scope.data = [];
 
+      // Array to hold the promises we use for the queries
       var promises = [];
 
-      $scope.panelMeta.loading = true; 
+      // Make the panel "loading" icon spin.
+      $scope.panelMeta.loading = true;
+
       var minTimeBetweenAjaxRequests = 300; // milliseconds()
-      
+
       for(var level = 0; level <= selectedTermsList.length; level++) {
-        
         // Ugly ugly ugly hack....mod_auth_cas breaks if requests are too close together (throws error 
         // " Cookie 'ae9afb895277b6e384a7c57d6350cc42' is corrupt or invalid," in Apache error logs), so this spaces 
         // requests by the specified time - found by trial and error.
+        // Not using setTimeout because don't want to get into more async complexity, hopefully Apache can be fixed
+        // at some point and this can be removed
         var currentMillis = (new Date).getMilliseconds();
         while ((new Date).getMilliseconds() !== ((currentMillis + minTimeBetweenAjaxRequests) % 1000));
         console.log("Requesting data for level " + level + " at: " + (new Date).getMilliseconds());
@@ -169,28 +151,25 @@ function (angular, app, _, $, kbn) {
           return;
         }
 
-        // Set the spinner visible on the meta panel
-        $scope.panelMeta.loading = true;
-
-        var request,
-          results,
-          boolQuery,
-          queries;
+        var request, results, boolQuery, queries;
 
         request = $scope.ejs.Request().indices(dashboard.indices);
 
-        // This gets the *queries* - entries in the search box etc.  We want all of these
+        // This gets the *queries* - entries in the search box etc.  Taken from "terms" module.js
         $scope.panel.queries.ids = querySrv.idsByMode($scope.panel.queries);
         queries = querySrv.getQueryObjs($scope.panel.queries.ids);
         boolQuery = $scope.ejs.BoolQuery();
         _.each(queries,function(q) {
           boolQuery = boolQuery.should(querySrv.toEjsObj(q));
         });
+
+
  
         // Now the *filters* - these are more complex because we need to build them up in turn for each level.
-        // Get a list of filter IDs with no selectedTerm filters...
+        // Get a list of filter IDs with no selectedTerm filters, i.e. filters that we aren't managing
         var filterIds = _.difference(filterSrv.ids, _.pluck(selectedTermsList, "filterSrvId"));
-        //... then add back in any that we have reached so far.  
+        //
+        // Add our filters:
         // For level == 0, we don't have any filters
         // Then when level == 1, add the first (e.g. tag_0) filter, and so on.
         for (var i = 0; i < level; i++) {
@@ -199,7 +178,7 @@ function (angular, app, _, $, kbn) {
 
         var filters = filterSrv.getBoolFilter(filterIds);
 
-        // Terms mode
+        // Configure the ejs request
         request
           .facet($scope.ejs.TermsFacet('terms')
             .field(field)
@@ -215,13 +194,15 @@ function (angular, app, _, $, kbn) {
         // Populate the inspector panel
         $scope.inspector = angular.toJson(JSON.parse(request.toString()),true);
 
-
-        // Populate scope when we have results
+        // Add the request to our "promise" list
         promises.push(request.doSearch().then(function(results) {
           return results;
         }));
       }
-      
+
+
+      // Using promises, so that we only update the panel when *all* the ajax requests we've fired have returned.
+      // We also get the results in the order they were sent, *not* the order they return which is important.
       $q.all(promises).then(function(results) {
         var selectedTermsToRemove = [];
         _.each(results,function(result, level) {
