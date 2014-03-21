@@ -1,0 +1,34 @@
+.uob-fake-table {
+  display: table;
+}
+
+.uob-fake-table .uob-fake-row {
+  display: table-row;
+}
+
+.uob-fake-table .uob-fake-row .uob-fake-cell {
+  display: table-cell;
+  border-left: solid white 1px;
+  padding:0 10px;
+  margin:0;
+}
+
+.uob-terms-panel ul {
+  padding:0;
+  margin:0
+}
+
+.uob-terms-panel ul li {
+  display: block;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+  /*padding-left: 10px;*/
+}
+
+.uob-active {
+  font-weight: bold;
+  color:white;
+}
+
+
