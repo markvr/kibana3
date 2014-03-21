@@ -1,10 +1,61 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title></title>
+
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      div#dashboards {
+        width: 50em;
+        margin: 0 auto;
+        border:1px solid black;
+      }
+
+      ul, li {
+        list-style-type: none;
+        padding:0;
+        margin:0;
+        width: 100%;
+        display: block;
+      }
+
+      ul li a {
+        display:block;
+        font-size: 1.2em;
+        text-decoration: none;
+        padding: 4px;
+      }
+
+      ul li a:hover {
+        background-color: #8d9fff;
+      }
+
+      ul#list-top > li div{
+        background-color: #003399;
+        color: white;
+        font-size: 1.3em;
+        padding: 5px;
+        border-top: 1px solid black;
+      }
+
+
+
+    </style>
+
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   </head>
   <body>
-    <p><a href="index.html">Kibana</a></p>
+    <div id="dashboards">
+    <ul id="list-top">
+      <li><div>General Dashboards</div><ul>
+          <li><a href="index.html#/dashboard/elasticsearch/Logstash%20Search">Overview</a></li>
+        </ul>
+      </li>
+      <li><div>Specific Dashboards</div> <ul>
+          <li><a href="index.html#/dashboard/elasticsearch/MyBristol">MyBristol</a></li>
+        </ul>
+      </li>
+    </div>
   </body>
 </html>
