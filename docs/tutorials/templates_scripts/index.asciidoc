@@ -8,7 +8,7 @@ filter via the URL.
 Templates and scripts must be stored on disk, storing them to
 Elasticsearch is not supported. They must also be created by editing or
 creating a schema. Because of this we highly recommend reading
-http://linktotheschema[The Kibana Schema Explained]
+link:./_dashboard_schema.html[The Kibana Schema Explained]
 
 [[the-dashboard-directory]]
 === The dashboard directory
@@ -24,7 +24,7 @@ found on the query and filter objects of the `logstash.json` dashboard.
 Templates use handlebar syntax that allow you insert javascript clauses
 into your json. URL parameters are available on the `ARGS` object. For
 example, a snippet from `logstash.json`'s
-https://github.com/elasticsearch/kibana/blob/master/src/app/dashboards/logstash.json[(on
+https://github.com/elasticsearch/kibana/blob/3.0/src/app/dashboards/logstash.json[(on
 github)] query and filter services:
 
 [source,json]
@@ -70,7 +70,7 @@ more complex to build. The goal in a scripted dashboard is to build and
 return a javascript object that describes the dashboard schema. A well
 commented example scripted dashboard can be found in
 `app/dashboards/logstash.js`
-https://github.com/elasticsearch/kibana/blob/master/src/app/dashboards/logstash.js[(on
+https://github.com/elasticsearch/kibana/blob/3.0/src/app/dashboards/logstash.js[(on
 github)]. This file accomplishes the same goals as `logstash.json`, but
 with the added power of scripts we can do things like split queries on
 commas:
@@ -80,7 +80,7 @@ commas:
 file as javascript.
 
 ------------------------------------------------------------------------------------------------
-http://yourserver/index.html#/dashboard/script/logstash.json?query=status:403,status:404&from=7d
+http://yourserver/index.html#/dashboard/script/logstash.js?query=status:403,status:404&from=7d
 ------------------------------------------------------------------------------------------------
 
 This will create 2 query objects, `status:403` and `status:404` and
@@ -88,17 +88,17 @@ chart them seperately. In fact this dashboard takes another parameter
 that describes the string by which to split the query on: `split`
 
 --------------------------------------------------------------------------------------------------------
-http://yourserver/index.html#/dashboard/script/logstash.json?query=status:403!status:404&from=7d&split=!
+http://yourserver/index.html#/dashboard/script/logstash.js?query=status:403!status:404&from=7d&split=!
 --------------------------------------------------------------------------------------------------------
 
 We can see this happening in `logstash.js`
-https://github.com/elasticsearch/kibana/blob/master/src/app/dashboards/logstash.js[(on
+https://github.com/elasticsearch/kibana/blob/3.0/src/app/dashboards/logstash.js[(on
 github)] here:
 
 [source,javascript]
 ----------------------------------------------------------------------------------------------
 // In this dashboard we let users pass queries as comma separated list to the query parameter.
-// Or they can specify a split character using the split aparameter
+// Or they can specify a split character using the split parameter
 // If query is defined, split it into a list of query objects
 // NOTE: ids must be integers, hence the parseInt()s
 if(!_.isUndefined(ARGS.query)) {
@@ -122,5 +122,5 @@ if(!_.isUndefined(ARGS.query)) {
 
 This dashboard takes more parameters than this, all of which are
 described in the comments at the top of `logstash.js`
-https://github.com/elasticsearch/kibana/blob/master/src/app/dashboards/logstash.js[(on
+https://github.com/elasticsearch/kibana/blob/3.0/src/app/dashboards/logstash.js[(on
 github)]

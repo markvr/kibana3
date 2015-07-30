@@ -47,7 +47,7 @@ function (angular, app, _, $, kbn) {
       /** @scratch /panels/terms/5
        * === Parameters
        *
-       * field:: The field on which to computer the facet
+       * field:: The field on which to compute the facet
        */
       field   : '_type',
       /** @scratch /panels/terms/5
@@ -84,7 +84,7 @@ function (angular, app, _, $, kbn) {
        */
       tilt    : false,
       /** @scratch /panels/terms/5
-       * lables:: In pie chart mode, draw labels in the pie slices
+       * labels:: In pie chart mode, draw labels in the pie slices
        */
       labels  : true,
       /** @scratch /panels/terms/5
@@ -96,7 +96,7 @@ function (angular, app, _, $, kbn) {
        */
       chart       : 'bar',
       /** @scratch /panels/terms/5
-       * counter_pos:: The location of the legend in respect to the chart, above or below.
+       * counter_pos:: The location of the legend in respect to the chart, above, below, or none.
        */
       counter_pos : 'above',
       /** @scratch /panels/terms/5
@@ -177,7 +177,7 @@ function (angular, app, _, $, kbn) {
           .facetFilter($scope.ejs.QueryFilter(
             $scope.ejs.FilteredQuery(
               boolQuery,
-              filterSrv.getBoolFilter(filterSrv.ids)
+              filterSrv.getBoolFilter(filterSrv.ids())
             )))).size(0);
       }
       if($scope.panel.tmode === 'terms_stats') {
@@ -190,7 +190,7 @@ function (angular, app, _, $, kbn) {
           .facetFilter($scope.ejs.QueryFilter(
             $scope.ejs.FilteredQuery(
               boolQuery,
-              filterSrv.getBoolFilter(filterSrv.ids)
+              filterSrv.getBoolFilter(filterSrv.ids())
             )))).size(0);
       }
 
