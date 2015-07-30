@@ -31,7 +31,7 @@ Like any JSON document, we start with an opening brace.
   "services": {
 ---------------
 
-Services are persisted objects that are used by mulitple panels. There
+Services are persisted objects that are used by multiple panels. There
 are currently 2 services that attach to the dashboard object and if
 omitted will be automatically populated with query and filter services.
 
@@ -107,7 +107,7 @@ Pulldowns are a special type of panel. Rather, they're a special place
 you can put panels. The panels in the `pulldown` section work just like
 panels in a row except they don't get a span, they're all full width.
 Also panels in pulldowns are not movable or editable by the user.
-They're greate for panels that take input. the `pulldown` property is an
+They're great for panels that take input. the `pulldown` property is an
 array that contains panel objects. For documentation for specific panels
 see link:./panels.html[Kibana Panels]
 

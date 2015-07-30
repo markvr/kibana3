@@ -64,7 +64,7 @@ function (angular, app, _, $) {
        */
       size    : 100,
       /** @scratch /panels/map/3
-       * exclude:: exclude this array of regions. For example [`US',`BR',`IN']
+       * exclude:: Exclude this array of regions. For example [`US',`BR',`IN']
        */
       exclude : [],
       /** @scratch /panels/map/3
@@ -121,7 +121,7 @@ function (angular, app, _, $) {
           .facetFilter($scope.ejs.QueryFilter(
             $scope.ejs.FilteredQuery(
               boolQuery,
-              filterSrv.getBoolFilter(filterSrv.ids)
+              filterSrv.getBoolFilter(filterSrv.ids())
               )))).size(0);
 
       $scope.populate_modal(request);
