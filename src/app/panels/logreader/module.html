@@ -1,0 +1,96 @@
+<div ng-controller='logreader' ng-init='init()'>
+  <style>
+    .table-doc-table {
+      margin-left: 0px !important;
+      overflow-y: auto;
+    }
+    .table-sidebar {
+      width: 200px;
+      display: table-cell;
+      padding-right: 10px;
+    }
+    .table-main {
+      width: 40%;
+      display: table-cell;
+    }
+    .table-container {
+      display: table;
+      height: 100px;
+      width: 100%;
+      table-layout: fixed;
+    }
+    .table-fieldname {
+      white-space: nowrap;
+    }
+
+    .table-fieldname a {
+      word-wrap:break-word;
+      white-space: normal;
+    }
+
+    .table-details {
+      table-layout: fixed;
+    }
+
+    .table-details-field {
+      width: 200px;
+    }
+
+    .table-details-action {
+      width: 60px;
+      text-align: center;
+    }
+
+    .table-details-value {
+    }
+
+    .table-field-value {
+      white-space: pre-wrap;
+    }
+
+    .logfile {
+      overflow: scroll;
+      text-overflow: ellipsis;
+      white-space: pre;
+      max-height: 800px;
+      width: 800px;
+    }
+
+    .logfile p {
+      margin:0;
+      padding:0;
+      font-family:monospace;
+      line-height:1em;
+    }
+    .align-middle {
+      text-align: center;
+    }
+    .date {
+      border-right: 1px solid white;
+      padding-right:5px;
+      margin-right: 5px;
+    }
+
+  </style>
+
+  
+  <div class=" panel-content">
+    <p><strong>Host:</strong> {{data[0]._source.host}}</p>
+    <p><strong>Filename:</strong> {{data[0]._source.file}}</p>
+    <div ng-click="goto('start')" class="pointer align-middle">Goto start</div>
+    <div ng-click="get_data('top')" class="pointer align-middle">Load More</div>
+    <div class="logfile">
+      <p bindonce
+         ng-repeat="event in data"
+         ng-class="{'uob-active' : isSelected(event._source.offset)}"
+         id="offset_{{event._source.offset}}"
+
+         ><span class="date">{{event._source['@timestamp'] | date:'HH:mm:ss' }}</span> {{event._source.message}}</p>
+
+    </div>
+    <div ng-click="get_data('bottom')" class="pointer align-middle">Load More</div>
+    <div ng-click="goto('end')" class="pointer align-middle">Goto end</div>
+  </div>
+
+
+</div>

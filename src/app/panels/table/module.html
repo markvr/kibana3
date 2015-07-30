@@ -117,15 +117,17 @@
             <span ng-show='!panel.sortable'>{{field}}</span>
             <i ng-show="!$last" class="pointer link icon-caret-right" ng-click="_.move(panel.fields,$index,$index+1)"></i>
           </th>
+          <th>&nbsp;</th>
 
         </thead>
         <tbody bindonce ng-repeat="event in data| slice:panel.offset:panel.offset+panel.size" ng-class-odd="'odd'">
-          <tr ng-click="toggle_details(event)" class="pointer">
+          <tr  class="pointer">
             <td ng-if="panel.fields.length<1" bo-text="event._source|stringify|tableTruncate:panel.trimFactor:1"></td>
-            <td ng-show="panel.fields.length>0" ng-repeat="field in panel.fields">
+            <td ng-click="toggle_details(event)" ng-show="panel.fields.length>0" ng-repeat="field in panel.fields">
               <span ng-if="!panel.localTime || panel.timeField != field" bo-html="(event.kibana.highlight[field]||event.kibana._source[field]) |tableHighlight | tableTruncate:panel.trimFactor:panel.fields.length" class="table-field-value"></span>
               <span ng-if="panel.localTime && panel.timeField == field" bo-html="event.sort[1]|tableLocalTime:event" class="table-field-value"></span>
             </td>
+            <td ng-click="view_file(event)">view</td>
           </tr>
           <tr ng-if="event.kibana.details">
             <td colspan={{panel.fields.length}} ng-switch="event.kibana.view">

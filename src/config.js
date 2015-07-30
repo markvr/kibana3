@@ -24,7 +24,8 @@ function (Settings) {
      * kibana installed on. You probably want to set it to the FQDN of your
      * elasticsearch host
      */
-    elasticsearch: "https://sysdev-logs.appinf.priv/elasticsearch",
+//    elasticsearch: "https://sysdev-logs.appinf.priv/elasticsearch",
+    elasticsearch: "http://192.168.147.5:9200",
 
     /** @scratch /configuration/config.js/5
      *
@@ -69,7 +70,9 @@ function (Settings) {
       'query',
       'terms',
       'stats',
-      'sparklines'
+      'sparklines',
+      'easyterms',
+      'logreader'
     ]
   });
 });
