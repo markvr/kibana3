@@ -1,4 +1,4 @@
-<div ng-controller='logreader' ng-init='init()'>
+<div ng-controller='uob_logreader' ng-init='init()'>
   <style>
     .table-doc-table {
       margin-left: 0px !important;
@@ -73,7 +73,7 @@
 
   </style>
 
-  
+
   <div class=" panel-content">
     <p><strong>Host:</strong> {{data[0]._source.host}}</p>
     <p><strong>Filename:</strong> {{data[0]._source.file}}</p>
@@ -85,7 +85,7 @@
          ng-class="{'uob-active' : isSelected(event._source.offset)}"
          id="offset_{{event._source.offset}}"
 
-         ><span class="date">{{event._source['@timestamp'] | date:'HH:mm:ss' }}</span> {{event._source.message}}</p>
+         ><span class="date">{{event._source['@timestamp']| date:'HH:mm:ss' }}</span> {{event._source.message}}</p>
 
     </div>
     <div ng-click="get_data('bottom')" class="pointer align-middle">Load More</div>
