@@ -71,10 +71,12 @@ define([
               // Used in case we are loading from a saved configuration that contains selected tags
               // Iterate over the existing filters, and find any that match our tag prefix.  If they do,
               // then add them to the selectedTerms list.
-              _.each(filterSrv.list, function (filter) {
-                if (typeof filter.field !== "undefined" && filter.field.indexOf($scope.panel.field) !== -1) {
-                  var field_num = parseInt(filter.field.split($scope.panel.field)[1]);
-                  selectedTermsList[field_num] = {"filterSrvId": filter.id, "term": {"label": filter.value}};
+              _.each(filterSrv.list(), function (filter) {
+                if (typeof filter.field !== "undefined") {
+                  var index = $scope.panel.tags.indexOf(filter.field);
+                  if (index !== -1) {
+                    selectedTermsList[index] = {"filterSrvId": filter.id, "term": {"label": filter.value}};
+                  }
                 }
               });
 
@@ -169,7 +171,7 @@ define([
                 // Now the *filters* - these are more complex because we need to build them up in turn for each level.
                 // Get a list of filter IDs with no selectedTerm filters, i.e. filters that we aren't managing
                 // TODO: Check that this includes the time range - I don't think it does
-                var filterIds = _.difference(filterSrv.ids, _.pluck(selectedTermsList, "filterSrvId"));
+                var filterIds = _.difference(filterSrv.ids(), _.pluck(selectedTermsList, "filterSrvId"));
                 //
                 // Add our filters:
                 // For level == 0, we don't have any filters
@@ -180,32 +182,18 @@ define([
 
                 var filters = filterSrv.getBoolFilter(filterIds);
 
-// my request
-//                                // Configure the ejs request
+
+                // Configure the ejs request
                 request
-                        .facet($scope.ejs.TermsFacet('terms')
-                                .field(tag)
-                                .size($scope.panel.size)
-                                .order($scope.panel.order)
-                                .facetFilter($scope.ejs.QueryFilter(
-                                        $scope.ejs.FilteredQuery(
-                                                boolQuery,
-                                                filters
-                                                )))).size(0);
-
-// "terms" request:
-                request = request
-                        .facet($scope.ejs.TermsFacet('terms')
-                                .field(tag)
-                                .size($scope.panel.size)
-                                .order($scope.panel.order)
-                                .facetFilter($scope.ejs.QueryFilter(
-                                        $scope.ejs.FilteredQuery(
-                                                boolQuery,
-                                                filterSrv.getBoolFilter(filterSrv.ids())
-                                                )))).size(0);
-
-
+                  .facet($scope.ejs.TermsFacet('terms')
+                  .field(tag)
+                  .size($scope.panel.size)
+                  .order($scope.panel.order)
+                  .facetFilter($scope.ejs.QueryFilter(
+                          $scope.ejs.FilteredQuery(
+                                  boolQuery,
+                                  filters
+                                  )))).size(0);
 
                 // Populate the inspector panel
                 $scope.inspector = angular.toJson(JSON.parse(request.toString()), true);
