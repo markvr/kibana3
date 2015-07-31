@@ -353,7 +353,7 @@ function (angular, app, _, kbn, moment) {
 
     $scope.view_file = function(event) {
       // Remove any existing filters we are managing
-      _.each(filterSrv.list, function(filter) {
+      _.each(filterSrv.list(), function(filter) {
         if (["file.raw", "host.raw", "offset"].indexOf(filter.field) > -1) {
           filterSrv.remove(filter.id, true);
         }
