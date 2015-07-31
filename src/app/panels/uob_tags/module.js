@@ -19,10 +19,10 @@ define([
 function (angular, app, _, $, kbn) {
   'use strict';
 
-  var module = angular.module('kibana.panels.uob', []);
+  var module = angular.module('kibana.panels.uob_tags', []);
   app.useModule(module);
 
-  module.controller('uob', function($scope, querySrv, dashboard, filterSrv, $q) {
+  module.controller('uob_tags', function($scope, querySrv, dashboard, filterSrv, $q) {
     $scope.panelMeta = {
       modals : [
         {
@@ -36,13 +36,12 @@ function (angular, app, _, $, kbn) {
         {title:'Queries', src:'app/partials/querySelect.html'}
       ],
       status  : "Stable",
-      description : "Displays the results of an elasticsearch facet as a pie chart, bar chart, or a "+
-        "table"
+      description : "Uses supplied tags to provide a hierarchy to find logs"
     };
 
     // Set and populate defaults
     var _d = {
-      field   : 'tag_',   // Default tag prefix
+      tags   : ['tag'],   // csv
       order   : 'term',
       style   : { "font-size": '10pt'},
       spyable     : true,
@@ -135,7 +134,7 @@ function (angular, app, _, $, kbn) {
 
       var minTimeBetweenAjaxRequests = 300; // milliseconds()
 
-      for(var level = 0; level <= selectedTermsList.length; level++) {
+      for(var level = 0; level <= Math.min(selectedTermsList.length, $scope.panel.tags.length - 1); level++) {
         // Ugly ugly ugly hack....mod_auth_cas breaks if requests are too close together (throws error 
         // " Cookie 'ae9afb895277b6e384a7c57d6350cc42' is corrupt or invalid," in Apache error logs), so this spaces 
         // requests by the specified time - found by trial and error.
@@ -143,10 +142,11 @@ function (angular, app, _, $, kbn) {
         // at some point and this can be removed
         var currentMillis = (new Date).getMilliseconds();
         while ((new Date).getMilliseconds() !== ((currentMillis + minTimeBetweenAjaxRequests) % 1000));
-        console.log("Requesting data for level " + level + " at: " + (new Date).getMilliseconds());
+        
 
-        var field  = $scope.panel.field + level; // e.g. "tag_0"
-      
+        var tag  = $scope.panel.tags[level];
+        console.log("Requesting data for tag " + tag)
+        
         if(dashboard.indices.length === 0) {
           return;
         }
@@ -181,10 +181,9 @@ function (angular, app, _, $, kbn) {
         // Configure the ejs request
         request
           .facet($scope.ejs.TermsFacet('terms')
-            .field(field)
+            .field(tag)
             .size($scope.panel.size)
             .order($scope.panel.order)
-            .exclude($scope.panel.exclude)
             .facetFilter($scope.ejs.QueryFilter(
               $scope.ejs.FilteredQuery(
                 boolQuery,
@@ -261,7 +260,7 @@ function (angular, app, _, $, kbn) {
         // Add the newly selected term to the list
         var selectedTerm = {};
         selectedTerm.term = term;
-        selectedTerm.filterSrvId =  filterSrv.set({type:'terms', field:$scope.panel.field + level, value:term.label, mandate:('must')});
+        selectedTerm.filterSrvId =  filterSrv.set({type:'terms', field:$scope.panel.tags[level], value:term.label, mandate:('must')});
         selectedTermsList.push(selectedTerm);
       } else {
         // Other wise just refresh so the filter removals above take effect.

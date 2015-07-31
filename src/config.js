@@ -30,7 +30,7 @@ function (Settings) {
      *
      */
 //    elasticsearch: "https://sysdev-logs.appinf.priv/elasticsearch",
-    elasticsearch: "http://192.168.147.5:9200",
+    elasticsearch: "https://sysdev-infrastructure-ai.services.bris.ac.uk/elasticsearch",
 
     /** @scratch /configuration/config.js/5
      *
@@ -77,7 +77,8 @@ function (Settings) {
       'stats',
       'sparklines',
       'easyterms',
-      'logreader'
+      'logreader',
+      'uob_tags'
     ]
   });
 });
