@@ -78,7 +78,8 @@ function (Settings) {
       'sparklines',
       'easyterms',
       'logreader',
-      'uob_tags'
+      'uob_tags',
+      'uob_results'
     ]
   });
 });

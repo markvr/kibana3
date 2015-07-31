@@ -23,10 +23,10 @@ define([
 function (angular, app, _, kbn, moment) {
   'use strict';
 
-  var module = angular.module('kibana.panels.table', []);
+  var module = angular.module('kibana.panels.uob_results', []);
   app.useModule(module);
 
-  module.controller('table', function($rootScope, $scope, $modal, $q, $compile, $timeout,
+  module.controller('uob_results', function($rootScope, $scope, $modal, $q, $compile, $timeout,
     fields, querySrv, dashboard, filterSrv) {
     $scope.panelMeta = {
       modals : [
@@ -48,8 +48,7 @@ function (angular, app, _, kbn, moment) {
         }
       ],
       status: "Stable",
-      description: "A paginated table of records matching your query or queries. Click on a row to "+
-        "expand it and review all of the fields associated with that document. <p>"
+      description: "A paginated list of search results"
     };
 
     // Set and populate defaults
@@ -173,51 +172,6 @@ function (angular, app, _, kbn, moment) {
       },0);
     };
 
-    $scope.statsModal = function(field) {
-      $scope.modalField = field;
-      showModal(
-        '{"field":"'+field+'"}','statistics');
-    };
-
-    var showModal = function(panel,type) {
-      $scope.facetPanel = panel;
-      $scope.facetType = type;
-
-      // create a new modal. Can't reuse one modal unforunately as the directive will not
-      // re-render on show.
-      /*
-      $modal({
-        template: './app/panels/table/modal.html',
-        persist: false,
-        show: true,
-        scope: $scope.$new(),
-        keyboard: false
-      });
-      */
-
-    };
-
-
-
-    $scope.toggle_micropanel = function(field,groups) {
-      var docs = _.map($scope.data,function(_d){return _d.kibana._source;});
-      var topFieldValues = kbn.top_field_values(docs,field,10,groups);
-      $scope.micropanel = {
-        field: field,
-        grouped: groups,
-        values : topFieldValues.counts,
-        hasArrays : topFieldValues.hasArrays,
-        related : kbn.get_related_fields(docs,field),
-        limit: 10,
-        count: _.countBy(docs,function(doc){return _.contains(_.keys(doc),field);})['true']
-      };
-    };
-
-    $scope.micropanelColor = function(index) {
-      var _c = ['bar-success','bar-warning','bar-danger','bar-info','bar-primary'];
-      return index > _c.length ? '' : _c[index];
-    };
-
     $scope.set_sort = function(field) {
       if($scope.panel.sort[0] === field) {
         $scope.panel.sort[1] = $scope.panel.sort[1] === 'asc' ? 'desc' : 'asc';
@@ -243,12 +197,6 @@ function (angular, app, _, kbn, moment) {
       } else {
         $scope.panel.highlight.push(field);
       }
-    };
-
-    $scope.toggle_details = function(row) {
-      row.kibana.details = row.kibana.details ? false : true;
-      row.kibana.view = row.kibana.view || 'table';
-      //row.kibana.details = !row.kibana.details ? $scope.without_kibana(row) : false;
     };
 
     $scope.page = function(page) {
