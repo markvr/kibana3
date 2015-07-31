@@ -402,19 +402,6 @@ function (angular, app, _, kbn, moment) {
       });
     };
 
-    $scope.view_file = function(event) {
-      // Remove any existing filters we are managing
-      _.each(filterSrv.list, function(filter) {
-        if (["file.raw", "host.raw", "offset"].indexOf(filter.field) > -1) {
-          filterSrv.remove(filter.id, true);
-        }
-      });
-      // Add the new ones
-      filterSrv.set({type:'terms', field:"file.raw", value:event._source.file, mandate:('must'), active:false});
-      filterSrv.set({type:'terms', field:"host.raw", value:event._source.host, mandate:('must'), active:false});
-      filterSrv.set({type:'terms', field:"offset", value:event._source.offset, mandate:('must'), active:false});
-    };
-
     $scope.populate_modal = function(request) {
       $scope.inspector = angular.toJson(JSON.parse(request.toString()),true);
     };

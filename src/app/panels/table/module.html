@@ -134,7 +134,6 @@
               <span ng-if="!panel.localTime || panel.timeField != field" bo-html="(event.kibana.highlight[field]||event.kibana._source[field]) |tableHighlight | tableTruncate:panel.trimFactor:panel.fields.length" class="table-field-value"></span>
               <span ng-if="panel.localTime && panel.timeField == field" bo-html="event.sort[1]|tableLocalTime:event" class="table-field-value"></span>
             </td>
-            <td ng-click="view_file(event)">view</td>
           </tr>
           <tr ng-if="event.kibana.details">
             <td colspan={{panel.fields.length}} ng-switch="event.kibana.view">

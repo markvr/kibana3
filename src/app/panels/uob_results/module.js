@@ -8,8 +8,9 @@
  * == table
  * Status: *Stable*
  *
- * The table panel contains a sortable, pagable view of documents that. It can be arranged into
- * defined columns and offers several interactions, such as performing adhoc terms aggregations.
+ * Shows a list of search results, that when clicked add a filter so the 
+ * uob_logreader panel can update and show the full log.  Based on the default
+ * "table" panel
  *
  */
 define([
