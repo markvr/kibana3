@@ -33,10 +33,10 @@
     <div class="logfile" style="height:{{panel.height || row.height}}">
       <p bindonce
          ng-repeat="event in data"
-         ng-class="{'uob-active' : isSelected(event._source.offset)}"
-         id="offset_{{event._source.offset}}"
+         ng-class="{'uob-active' : isSelected(event.offset)}"
+         id="offset_{{event.offset}}"
 
-         ><span class="date">{{event._source['@timestamp']| date:'HH:mm:ss' }}</span> {{event._source.message}}</p>
+         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }} - {{event['offset']}}</span> {{event.message}}</p>
 
     </div>
     <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>

@@ -254,6 +254,7 @@ define([
               console.log("created file.raw filter");
               filterSrv.set({type: 'terms', field: "host.raw", value: event._source.host, mandate: ('must'), active: false});
               console.log("created host.raw filter");
+              //filterSrv.set({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
               filterSrv.set({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
               console.log("created offset filter");
 
