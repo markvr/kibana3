@@ -244,19 +244,19 @@ define([
               //
               // Remove any existing filters we are managing
               _.each(filterSrv.list(), function (filter) {
-                if (["file.raw", "host.raw", "offset"].indexOf(filter.field) > -1) {
+                if (["file.raw", "host.raw", "offset", "log_timestamp"].indexOf(filter.field) > -1) {
                   filterSrv.remove(filter.id);
                   console.log("removed filter " + filter.id);
                 }
               });
               // Add the new ones
               filterSrv.set({type: 'terms', field: "file.raw", value: event._source.file, mandate: ('must'), active: false});
-              console.log("created file.raw filter");
               filterSrv.set({type: 'terms', field: "host.raw", value: event._source.host, mandate: ('must'), active: false});
-              console.log("created host.raw filter");
-              //filterSrv.set({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
+              filterSrv.set({type: 'terms', field: "log_timestamp", value: event._source["@timestamp"], mandate: ('must'), active: false});
               filterSrv.set({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
-              console.log("created offset filter");
+
+              $scope.timestamp = event._source["@timestamp"];
+              $scope.offset = event._source.offset;
 
               // This is a hack, but there is some async stuff going on in the background, where
               // if we set_refresh(true) directly then all the previous filter updates still fire
@@ -270,6 +270,9 @@ define([
 
             };
 
+            $scope.isSelected = function (timestamp, offset) {
+              return (offset === $scope.offset && timestamp === $scope.timestamp);
+            };
 
             $scope.get_data = function (segment, query_id) {
               console.log("uob_results: get_data called")

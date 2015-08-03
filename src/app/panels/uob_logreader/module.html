@@ -4,7 +4,7 @@
       overflow: scroll;
       text-overflow: ellipsis;
       white-space: pre;
-      width: 100%;
+      width: 850px;
     }
 
     .logfile p {
@@ -26,21 +26,22 @@
 
 
   <div class=" panel-content" >
-    <p><strong>Host:</strong> {{data[0]._source.host}}</p>
-    <p><strong>Filename:</strong> {{data[0]._source.file}}</p>
-    <span ng-click="goto('start')" class="pointer align-middle">Goto start</span>
-    <span ng-click="get_data('top')" class="pointer align-middle">Load More</span>
+    <p><strong>Host:</strong> {{host}}</p>
+    <p><strong>Filename:</strong> {{file}}</p>
+    <span ng-click="goto('start')" class="pointer align-middle">Goto start</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+    <span ng-click="load_more('top')" class="pointer align-middle">Load More</span>
     <div class="logfile" style="height:{{panel.height || row.height}}">
       <p bindonce
          ng-repeat="event in data"
-         ng-class="{'uob-active' : isSelected(event.offset)}"
+         ng-class="{'uob-active' : isSelected(event['@timestamp'], event.offset)}"
          id="offset_{{event.offset}}"
 
-         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }} - {{event['offset']}}</span> {{event.message}}</p>
+         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }}</span> {{event.message}}</p>
 
     </div>
-    <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>
-    <span ng-click="get_data('bottom')" class="pointer align-middle">Load More</span>
+    <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+    <span ng-click="load_more('bottom')" class="pointer align-middle">Load More</span>
+    
   </div>
 
 
