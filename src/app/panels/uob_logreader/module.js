@@ -173,6 +173,8 @@ define([
         $scope.do_query = function (timestamp, offset, direction, equal_to) {
           var filters = [];
           var filterValues = $scope.get_filterValues();
+          if (typeof(filterValues) === "undefined") return;
+          
           // filterSrv.getEjsObj() returns false if the filter is in-active, so we need to manually create it ourselves
           filters.push($scope.ejs.TermFilter("file.raw", filterValues["file.raw"]));
           filters.push($scope.ejs.TermFilter("host.raw", filterValues["host.raw"]));
@@ -216,6 +218,7 @@ define([
         }
 
         $scope.handle_results = function(promises) {
+        console.log("handle results")
           var data = $scope.data;
           $q.all(promises).then(function (results) {
             _.each(results, function (result) {
@@ -236,7 +239,7 @@ define([
           });
         }
 
-        $scope.get_data = function (position) {
+        $scope.get_data = function () {
           // The enabling/disabling of filters in uob_results causes excessive amounts
           // of refreshes.  Do some "flood control" so only one request is sent per results click
           if ($scope.disable_refresh) return;
@@ -264,6 +267,7 @@ define([
           $scope.data = [];
 
           var filterValues = $scope.get_filterValues();
+          if (typeof(filterValues) === "undefined") return;
           if (typeof(filterValues["log_timestamp"]) === "undefined") {
             // We don't have an timestamp so default to end of file
             $scope.handle_results([$scope.do_query(undefined, undefined,  "desc")]);
@@ -306,6 +310,17 @@ define([
 
         }
 
+        $scope.do_follow = function() {
+            $scope.load_more("bottom");
+            if ($scope.follow === true) {
+                setTimeout($scope.do_follow, 1000);
+            }
+        }
+
+        $scope.toggle_follow = function() {
+            $scope.follow = $scope.input;
+            if ($scope.follow) $scope.do_follow();
+        }
 
         $scope.isSelected = function (timestamp, offset) {
           return (offset === $scope.offset && timestamp === $scope.log_timestamp);

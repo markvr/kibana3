@@ -36,11 +36,12 @@
          ng-class="{'uob-active' : isSelected(event['@timestamp'], event.offset)}"
          id="offset_{{event.offset}}"
 
-         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }}</span> {{event.message}}</p>
+         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }} {{event.offset}}</span> {{event.message}}</p>
 
     </div>
     <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>&nbsp;&nbsp;|&nbsp;&nbsp;
     <span ng-click="load_more('bottom')" class="pointer align-middle">Load More</span>
+    <div><input type="checkbox" name="follow" ng-model="input" ng-click="toggle_follow()" /><label for="follow">follow</label></div>
     
   </div>
 
