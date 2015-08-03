@@ -128,7 +128,7 @@
             <td ng-if="panel.fields.length < 1" bo-text="event._source|stringify|tableTruncate:panel.trimFactor:1"></td>
             <td ng-click="view_file(event)" ng-show="panel.fields.length > 0" ng-repeat="field in panel.fields">
               <span ng-if="!panel.localTime || panel.timeField != field" bo-html="(event.kibana.highlight[field]||event.kibana._source[field]) |tableHighlight | tableTruncate:panel.trimFactor:panel.fields.length" class="uobresults-field-value"></span>
-              <span ng-if="panel.localTime && panel.timeField == field" bo-html="event.sort[1]|tableLocalTime:event" class="uobresults-field-value"></span>
+              <span ng-if="panel.localTime && panel.timeField == field" bo-html="event.sort[1]|tableLocalTime:event| date:'yyyy-mm-dd HH:mm:ss'" class="uobresults-field-value"></span>
             </td>
             <!--<td ng-click="view_file(event)">view</td>-->
           </tr>
