@@ -274,6 +274,10 @@ define([
               ]
               $scope.handle_results(queries);
             }
+          } else {
+            $scope.data = [];
+            $scope.file = "";
+            $scope.host = "";
           }
         }
 
