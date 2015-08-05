@@ -1,4 +1,4 @@
-<div ng-controller='uob_logreader' ng-init='init()'>
+    <div ng-controller='uob_logreader' ng-init='init()'>
   <style>
     .logfile {
       overflow: scroll;
@@ -38,9 +38,9 @@
 
     </div>
     <div>
-      <input type="checkbox" ng-model="follow_enabled" ng-click="follow($event)"/> Follow &nbsp;&nbsp;|&nbsp;&nbsp;
       <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>&nbsp;&nbsp;|&nbsp;&nbsp;
       <span ng-click="load_more('bottom')" class="pointer align-middle">Load More</span>
+      <label><input type="checkbox" ng-model="follow_enabled" ng-click="follow($event)"/> Follow</label>
     </div>
 
   </div>
