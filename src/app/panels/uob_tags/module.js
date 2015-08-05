@@ -45,6 +45,7 @@ define([
               order: 'term',
               style: {"font-size": '10pt'},
               spyable: true,
+              strip_path: true,
               /** @scratch /panels/terms/5
                * ==== Queries
                * queries object:: This object describes the queries to use on this panel.
@@ -143,8 +144,7 @@ define([
                 // Not using setTimeout because don't want to get into more async complexity, hopefully Apache can be fixed
                 // at some point and this can be removed
                 var currentMillis = (new Date).getMilliseconds();
-                while ((new Date).getMilliseconds() !== ((currentMillis + minTimeBetweenAjaxRequests) % 1000))
-                  ;
+//                while ((new Date).getMilliseconds() !== ((currentMillis + minTimeBetweenAjaxRequests) % 1000));
 
 
                 var tag = $scope.panel.tags[level];
@@ -170,7 +170,6 @@ define([
 
                 // Now the *filters* - these are more complex because we need to build them up in turn for each level.
                 // Get a list of filter IDs with no selectedTerm filters, i.e. filters that we aren't managing
-                // TODO: Check that this includes the time range - I don't think it does
                 var filterIds = _.difference(filterSrv.ids(), _.pluck(selectedTermsList, "filterSrvId"));
                 //
                 // Add our filters:
@@ -213,7 +212,13 @@ define([
                   if (result.facets.terms.terms.length > 0) {
                     $scope.data[level] = [];
                     _.each(result.facets.terms.terms, function (v) {
-                      $scope.data[level].push({label: v.term, count: v.count});
+                      var obj = {label: v.term, count: v.count}
+                      if ($scope.panel.tags[level] === "file.raw" && $scope.panel.strip_path) {
+                        var paths = v.term.split("/")
+                        var file = paths[paths.length-1];
+                        obj.shortlabel = file;
+                      }
+                      $scope.data[level].push(obj);
                     });
                   } else {
                     // If we have no results, then either there are no more tag levels to go (i.e. the queried tag doesn't exist)
@@ -233,9 +238,6 @@ define([
             };
 
             /**
-             * Given a search term and tag level, add to the filter by concatenating the level to the field name (defined when
-             * the panel was created), and setting that to the term.  e.g. for {term = "webfarm", level = 0}, add a filter of
-             * "$scope.panel.field_0 == "webfarm"
              * @param {string} term The term (i.e. word) that to add to the filter
              * @param {integer} level The level we are at
              * @returns {nothing}
@@ -248,11 +250,14 @@ define([
               } else {
                 clickSelectedTerm = false;
               }
-
+              
               // Remove from the selectedTermsList and $scope.data the entries above and including the clicked item
-              for (var i = (selectedTermsList.length - 1); i >= level; i--) {
+              for (var i = selectedTermsList.length - 1; i >= level ; i--) {
                 filterSrv.remove(selectedTermsList[i].filterSrvId, true);
                 selectedTermsList.pop();
+                
+                // Remove any others with the same name
+                $scope.remove_filter($scope.panel.tags[i])
 
                 // Remove all columns above the one that has been selected, unless we are unselecting, in which case
                 // remove the selected one as well
@@ -260,6 +265,9 @@ define([
                   $scope.data.pop();
                 }
               }
+
+              // And also remove any at the current 'level'
+              $scope.remove_filter($scope.panel.tags[level])
 
               if (clickSelectedTerm === false) {
                 // Add the newly selected term to the list
@@ -273,6 +281,15 @@ define([
               }
 
             };
+
+            $scope.remove_filter = function(name) {
+                // remove any other filters we don't manage but have the same field name
+              _.each(filterSrv.list(), function (filter) {
+                  if (filter.field === name) {
+                      filterSrv.remove(filter.id, true)
+                  }
+              });
+            }
 
             $scope.set_refresh = function (state) {
               $scope.refresh = state;
