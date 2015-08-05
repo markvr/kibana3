@@ -1,15 +1,15 @@
 <div ng-controller='uob_tags' ng-init="init()" class="uob-terms-panel">
 
   <div class="uob-fake-table">
-    <div class="uob-fake-row">
+    <div class="uob-fake-row" >
       <div ng-repeat = "column in data" class="uob-fake-cell">
-        <ul ng-style="panel.style">
-          <li 
-            ng-repeat="term in column" 
+        <ul ng-style="panel.style" style="height:{{panel.height || row.height}};overflow-y:scroll; padding-right:10px">
+          <li
+            ng-repeat="term in column"
             ng-click="build_search(term, $parent.$index)"
           >
             <span ng-class="{'uob-active' : isSelected(term, $parent.$index)}">  {{term.label}} ({{term.count}})</span>
-          </li> 
+          </li>
         </ul>
       </div>
     </div>
