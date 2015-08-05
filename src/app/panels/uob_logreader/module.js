@@ -213,20 +213,22 @@ define([
           request = request.query(filteredQuery)
             .size($scope.panel.loadSize)
             .sort(sort);
-
+          console.log(request)
           return request.doSearch();
         }
 
         $scope.handle_results = function(promises) {
-        console.log("handle results")
-          var data = $scope.data;
-          $q.all(promises).then(function (results) {
+            $q.all(promises).then(function (results) {
+            var data = $scope.data;
+            console.log("Result: ");
+            console.log(results);
             _.each(results, function (result) {
               if (!(_.isUndefined(results.error))) {
                 $scope.panel.error = $scope.parse_error(results.error);
                 return; // how do we return all the way out of handle_results?
               }
               _.each(result.hits.hits, function(hit) {
+                  
                 data.push(hit._source);
               });
             });
@@ -283,6 +285,7 @@ define([
         $scope.load_more = function(position) {
           var query;
           $scope.panelMeta.loading = true;
+          console.log("load more")
           if (position === "top") {
             var timestamp = $scope.data[0]["@timestamp"]
             var offset = $scope.data[0]["offset"]
@@ -311,6 +314,7 @@ define([
         }
 
         $scope.do_follow = function() {
+            console.log("doing follow")
             $scope.load_more("bottom");
             if ($scope.follow === true) {
                 setTimeout($scope.do_follow, 1000);
