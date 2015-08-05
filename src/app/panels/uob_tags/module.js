@@ -75,7 +75,7 @@ define([
               _.each(filterSrv.list(), function (filter) {
                 if (typeof filter.field !== "undefined") {
                   var index = $scope.panel.tags.indexOf(filter.field);
-                  if (index !== -1) {
+                  if (index !== -1 && filter.active) {
                     selectedTermsList[index] = {"filterSrvId": filter.id, "term": {"label": filter.value}};
                   }
                 }

@@ -1,5 +1,9 @@
     <div ng-controller='uob_logreader' ng-init='init()'>
   <style>
+    .panel {
+          display:block;
+          float:left
+      }
     .logfile {
       overflow: scroll;
       text-overflow: ellipsis;
@@ -29,7 +33,7 @@
     <p><strong>Filename:</strong> {{file}}</p>
     <span ng-click="goto('start')" class="pointer align-middle">Goto start</span>&nbsp;&nbsp;|&nbsp;&nbsp;
     <span ng-click="load_more('top')" class="pointer align-middle">Load More</span>
-    <div class="logfile" id="logfile" style="height:{{panel.height || row.height}}; width:{{panel.logfile_width}}px">
+    <div class="logfile" id="logfile" style="height:{{panel.height || row.height}};">
       <p bindonce
          ng-repeat="event in data"
          ng-class="{'uob-active' : isSelected(event['@timestamp'], event.offset)}"
