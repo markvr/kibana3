@@ -25,7 +25,7 @@ define([
       var module = angular.module('kibana.panels.uob_logreader', []);
       app.useModule(module);
 
-      module.controller('uob_logreader', function ($rootScope, $scope, $modal, $q, $compile, fields, querySrv, dashboard, filterSrv) {
+      module.controller('uob_logreader', function ($rootScope, $scope, $modal, $q, $compile, fields, querySrv, dashboard, filterSrv, $timeout, $anchorScroll) {
         $scope.panelMeta = {
           modals: [
             {
@@ -53,9 +53,8 @@ define([
            * size:: The number of hits to show per page
            */
           loadSize: 1000, // Per page
-          /** @scratch /panels/table/5
-           * pages:: The number of pages available
-           */
+          follow: "message",
+          followInterval: 5,
 
           timeField: '@timestamp',
           /** @scratch /panels/table/5
@@ -173,8 +172,6 @@ define([
         $scope.do_query = function (timestamp, offset, direction, equal_to) {
           var filters = [];
           var filterValues = $scope.get_filterValues();
-          if (typeof(filterValues) === "undefined") return;
-          
           // filterSrv.getEjsObj() returns false if the filter is in-active, so we need to manually create it ourselves
           filters.push($scope.ejs.TermFilter("file.raw", filterValues["file.raw"]));
           filters.push($scope.ejs.TermFilter("host.raw", filterValues["host.raw"]));
@@ -213,22 +210,20 @@ define([
           request = request.query(filteredQuery)
             .size($scope.panel.loadSize)
             .sort(sort);
-          console.log(request)
+
           return request.doSearch();
         }
 
         $scope.handle_results = function(promises) {
-            $q.all(promises).then(function (results) {
-            var data = $scope.data;
-            console.log("Result: ");
-            console.log(results);
+          var data = $scope.data;
+          $q.all(promises).then(function (results) {
+            console.log("handle_results")
             _.each(results, function (result) {
               if (!(_.isUndefined(results.error))) {
                 $scope.panel.error = $scope.parse_error(results.error);
                 return; // how do we return all the way out of handle_results?
               }
               _.each(result.hits.hits, function(hit) {
-                  
                 data.push(hit._source);
               });
             });
@@ -241,7 +236,7 @@ define([
           });
         }
 
-        $scope.get_data = function () {
+        $scope.get_data = function (position) {
           // The enabling/disabling of filters in uob_results causes excessive amounts
           // of refreshes.  Do some "flood control" so only one request is sent per results click
           if ($scope.disable_refresh) return;
@@ -249,14 +244,13 @@ define([
           setTimeout(function() {
             $scope.disable_refresh = false;
           }, 100)
+          $scope.follow_enabled = false;
 
           var
               request,
               boolQuery;
 
           $scope.panel.error = false;
-
-          $scope.panelMeta.loading = true;
 
           // Make sure we have everything for the request to complete
           if (dashboard.indices.length === 0) {
@@ -265,27 +259,28 @@ define([
 
           $scope.panel.queries.ids = querySrv.idsByMode($scope.panel.queries);
 
-          // Reset the data because we are loading a new location
-          $scope.data = [];
-
           var filterValues = $scope.get_filterValues();
-          if (typeof(filterValues) === "undefined") return;
-          if (typeof(filterValues["log_timestamp"]) === "undefined") {
-            // We don't have an timestamp so default to end of file
-            $scope.handle_results([$scope.do_query(undefined, undefined,  "desc")]);
-          } else {
-            var queries = [
-              $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "desc", false),
-              $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "asc", true),
-            ]
-            $scope.handle_results(queries);
+          if (typeof(filterValues) !== "undefined") {
+            // Reset the data because we are loading a new location
+            $scope.data = [];
+            $scope.panelMeta.loading = true;
+            if (typeof(filterValues["log_timestamp"]) === "undefined") {
+              // We don't have an timestamp so default to end of file
+              $scope.handle_results([$scope.do_query(undefined, undefined,  "desc")]);
+            } else {
+              var queries = [
+                $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "desc", false),
+                $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "asc", true),
+              ]
+              $scope.handle_results(queries);
+            }
           }
         }
 
         $scope.load_more = function(position) {
           var query;
           $scope.panelMeta.loading = true;
-          console.log("load more")
+          console.log("load_more")
           if (position === "top") {
             var timestamp = $scope.data[0]["@timestamp"]
             var offset = $scope.data[0]["offset"]
@@ -296,6 +291,7 @@ define([
             query = $scope.do_query(timestamp, offset, "asc", false);
           }
           $scope.handle_results([query])
+          return query;
 
         }
 
@@ -309,21 +305,28 @@ define([
             query = $scope.do_query(undefined, undefined, "desc", true)
           }
           $scope.handle_results([query]);
-
-
+          return query;
         }
 
         $scope.do_follow = function() {
-            console.log("doing follow")
-            $scope.load_more("bottom");
-            if ($scope.follow === true) {
-                setTimeout($scope.do_follow, 1000);
-            }
+          if ($scope.follow_enabled) {
+            $scope.load_more("bottom").then(function() {
+              var el = angular.element("#logfile")[0];
+              el.scrollTop = el.scrollHeight;
+              // Don't use setTimeout here - it doesn't fire until angular refreshes.
+              // This is the angular equivalent
+            })
+            $timeout($scope.do_follow, $scope.panel.followInterval * 1000);
+          }
         }
 
-        $scope.toggle_follow = function() {
-            $scope.follow = $scope.input;
-            if ($scope.follow) $scope.do_follow();
+        $scope.follow = function(event) {
+          //$scope.follow_enabled = event.currentTarget.checked;
+          if ($scope.follow_enabled) {
+            $scope.goto("end").then(function() {
+               $timeout($scope.do_follow, $scope.panel.followInterval * 1000);
+            })
+          }
         }
 
         $scope.isSelected = function (timestamp, offset) {

@@ -4,7 +4,6 @@
       overflow: scroll;
       text-overflow: ellipsis;
       white-space: pre;
-      width: 850px;
     }
 
     .logfile p {
@@ -30,19 +29,20 @@
     <p><strong>Filename:</strong> {{file}}</p>
     <span ng-click="goto('start')" class="pointer align-middle">Goto start</span>&nbsp;&nbsp;|&nbsp;&nbsp;
     <span ng-click="load_more('top')" class="pointer align-middle">Load More</span>
-    <div class="logfile" style="height:{{panel.height || row.height}}">
+    <div class="logfile" id="logfile" style="height:{{panel.height || row.height}}; width:{{panel.logfile_width}}px">
       <p bindonce
          ng-repeat="event in data"
          ng-class="{'uob-active' : isSelected(event['@timestamp'], event.offset)}"
          id="offset_{{event.offset}}"
-
-         ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }} {{event.offset}}</span> {{event.message}}</p>
+        ><span class="date">{{event['@timestamp']| date:'HH:mm:ss' }}</span> {{event[panel.field]}}</p>
 
     </div>
-    <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-    <span ng-click="load_more('bottom')" class="pointer align-middle">Load More</span>
-    <div class="checkbox"><label><input type="checkbox" name="follow" id="follow" ng-model="input" ng-click="toggle_follow()" />&nbsp; follow</label></div>
-    
+    <div>
+      <input type="checkbox" ng-model="follow_enabled" ng-click="follow($event)"/> Follow &nbsp;&nbsp;|&nbsp;&nbsp;
+      <span ng-click="goto('end')" class="pointer align-middle">Goto end</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      <span ng-click="load_more('bottom')" class="pointer align-middle">Load More</span>
+    </div>
+
   </div>
 
 
