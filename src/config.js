@@ -29,7 +29,7 @@ define(['settings'],
              *
              */
 //    elasticsearch: "https://sysdev-logs.appinf.priv/elasticsearch",
-            elasticsearch: "https://sysdev-infrastructure-ai.services.bris.ac.uk/elasticsearch",
+            elasticsearch: "/elasticsearch",
             /** @scratch /configuration/config.js/5
              *
              * ==== default_route
