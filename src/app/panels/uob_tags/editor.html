@@ -1,15 +1,20 @@
   <div class="row-fluid">
-    <div class="span3">
+    <div class="editor-option">
       <label class="small">Comma separated list of tags</label>
       <input type="text" array-join class="input-large" ng-model="panel.tags" ng-change="set_refresh(true)">
     </div>
-    <div class="span2">
+    <div class="editor-option">
       <label class="small">Length</label>
       <input class="input-small" type="number" ng-model="panel.size" ng-change="set_refresh(true)">
     </div>
-    <div class="span3">
+    <div class="editor-option">
       <label class="small">Order</label>
       <select class="input-medium" ng-model="panel.order" ng-options="f for f in ['count','term','reverse_count','reverse_term']" ng-change="set_refresh(true)"></select></span>
     </div>
+
+    <div class="editor-option">
+        <label class="small">Strip path from file.raw tags</label>
+        <input type="checkbox" class="input-small" ng-model="panel.strip_path" ng-change="set_refresh(true)">
+      </div>      
   </div>
   

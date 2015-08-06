@@ -8,10 +8,10 @@
             ng-repeat="term in column"
             ng-click="build_search(term, $parent.$index)"
           >
-            <span ng-class="{'uob-active' : isSelected(term, $parent.$index)}">  {{term.label}} ({{term.count}})</span>
+            <span ng-class="{'uob-active' : isSelected(term, $parent.$index)}">  {{term.shortlabel || term.label}} ({{term.count}})</span>
           </li>
         </ul>
       </div>
     </div>
   </div>
-<hr style="clear:both"/>
+</div>
