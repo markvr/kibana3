@@ -26,8 +26,7 @@ define([
           var module = angular.module('kibana.panels.uob_results', []);
           app.useModule(module);
 
-          module.controller('uob_results', function ($rootScope, $scope, $modal, $q, $compile, $timeout,
-                  fields, querySrv, dashboard, filterSrv) {
+          module.controller('uob_results', function ($rootScope, $scope, $timeout, fields, querySrv, dashboard, filterSrv) {
             $scope.panelMeta = {
               modals: [
                 {
@@ -173,15 +172,6 @@ define([
               }
             };
 
-            $scope.termsModal = function (field, chart) {
-              $scope.closeFacet();
-              $timeout(function () {
-                $scope.modalField = field;
-                showModal(
-                        '{"height":"200px","chart":"' + chart + '","field":"' + field + '"}', 'terms');
-              }, 0);
-            };
-
             $scope.set_sort = function (field) {
               if ($scope.panel.sort[0] === field) {
                 $scope.panel.sort[1] = $scope.panel.sort[1] === 'asc' ? 'desc' : 'asc';
@@ -214,61 +204,54 @@ define([
               $scope.get_data();
             };
 
-            $scope.build_search = function (field, value, negate) {
-              var query;
-              // This needs to be abstracted somewhere
-              if (_.isArray(value)) {
-                query = "(" + _.map(value, function (v) {
-                  return angular.toJson(v);
-                }).join(" AND ") + ")";
-              } else if (_.isUndefined(value)) {
-                query = '*';
-                negate = !negate;
-              } else {
-                query = angular.toJson(value);
-              }
-              $scope.panel.offset = 0;
-              filterSrv.set({type: 'field', field: field, query: query, mandate: (negate ? 'mustNot' : 'must')});
-            };
 
             $scope.fieldExists = function (field, mandate) {
-              filterSrv.set({type: 'exists', field: field, mandate: mandate});
+              $scope.add_filter({type: 'exists', field: field, mandate: mandate});
             };
 
             $scope.view_file = function (event) {
               console.log("enable_updates off");
               $scope.enable_updates = false;
 
-              // Calling filterSrv.set({}, true) only prevents refreshing the dashboard view, i.e.
-              // get_data() still gets called each time, so we end up calling it 6 times!
-              //
               // Remove any existing filters we are managing
               _.each(filterSrv.list(), function (filter) {
                 if (["file.raw", "host.raw", "offset", "log_timestamp"].indexOf(filter.field) > -1) {
-                  filterSrv.remove(filter.id);
+                  $scope.remove_filter(filter.id);
                   console.log("removed filter " + filter.id);
                 }
               });
               // Add the new ones
-              filterSrv.set({type: 'terms', field: "file.raw", value: event._source.file, mandate: ('must'), active: false});
-              filterSrv.set({type: 'terms', field: "host.raw", value: event._source.host, mandate: ('must'), active: false});
-              filterSrv.set({type: 'terms', field: "log_timestamp", value: event._source["@timestamp"], mandate: ('must'), active: false});
-              filterSrv.set({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
+              $scope.add_filter({type: 'terms', field: "file.raw", value: event._source.file, mandate: ('must'), active: false});
+              $scope.add_filter({type: 'terms', field: "host.raw", value: event._source.host, mandate: ('must'), active: false});
+              $scope.add_filter({type: 'terms', field: "log_timestamp", value: event._source["@timestamp"], mandate: ('must'), active: false});
+              $scope.add_filter({type: 'terms', field: "offset", value: event._source.offset, mandate: ('must'), active: false});
 
               $scope.timestamp = event._source["@timestamp"];
               $scope.offset = event._source.offset;
+
+              $rootScope.$broadcast('log_refresh');
+
+              //dashboard.refresh()
 
               // This is a hack, but there is some async stuff going on in the background, where
               // if we set_refresh(true) directly then all the previous filter updates still fire
               // So we need a small delay to allow the refresh fns to fire async while refresh is
               // still off.
-              setTimeout(function () {
-                console.log("refresh on");
+              $timeout(function () {
+                console.log("enable_updates on");
                 $scope.enable_updates = true;
               }, 100);
 
 
             };
+
+            $scope.add_filter = function(filter) {
+              filterSrv.set(filter,undefined,true);
+            }
+
+            $scope.remove_filter = function(id) {
+              filterSrv.remove(id, true);
+            }
 
             $scope.isSelected = function (timestamp, offset) {
               return (offset === $scope.offset && timestamp === $scope.timestamp);

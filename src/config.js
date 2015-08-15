@@ -28,8 +28,8 @@ define(['settings'],
              *  +elasticsearch: {server: "http://localhost:9200", withCredentials: true}+
              *
              */
-//    elasticsearch: "https://sysdev-logs.appinf.priv/elasticsearch",
-            elasticsearch: "/elasticsearch",
+            elasticsearch: "https://sysdev-infrastructure.services.bris.ac.uk/elasticsearch",
+//            elasticsearch: "/elasticsearch",
             /** @scratch /configuration/config.js/5
              *
              * ==== default_route

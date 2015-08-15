@@ -156,8 +156,6 @@ define([
 
                 var request, results, boolQuery, queries;
 
-                request = $scope.ejs.Request().indices(dashboard.indices);
-
                 // This gets the *queries* - entries in the search box etc.  Taken from "terms" module.js
                 $scope.panel.queries.ids = querySrv.idsByMode($scope.panel.queries);
                 queries = querySrv.getQueryObjs($scope.panel.queries.ids);
@@ -182,7 +180,25 @@ define([
                 var filters = filterSrv.getBoolFilter(filterIds);
 
 
+//                // Configure the ejs request
+//                request
+//                  .facet($scope.ejs.TermsFacet('terms')
+//                  .field(tag)
+//                  .size($scope.panel.size)
+//                  .order($scope.panel.order)
+//                  .facetFilter($scope.ejs.QueryFilter(
+//                          $scope.ejs.FilteredQuery(
+//                                  boolQuery,
+//                                  filters
+//                                  )))).size(0);
+
                 // Configure the ejs request
+                var filteredQuery = $scope.ejs.FilteredQuery(
+                  $scope.ejs.QueryStringQuery("*"),
+                  $scope.ejs.BoolFilter().must(filters)
+                  );
+
+                var request = $scope.ejs.Request().indices(dashboard.indices);
                 request
                   .facet($scope.ejs.TermsFacet('terms')
                   .field(tag)
@@ -193,6 +209,8 @@ define([
                                   boolQuery,
                                   filters
                                   )))).size(0);
+
+
 
                 // Populate the inspector panel
                 $scope.inspector = angular.toJson(JSON.parse(request.toString()), true);
@@ -250,12 +268,12 @@ define([
               } else {
                 clickSelectedTerm = false;
               }
-              
+
               // Remove from the selectedTermsList and $scope.data the entries above and including the clicked item
               for (var i = selectedTermsList.length - 1; i >= level ; i--) {
                 filterSrv.remove(selectedTermsList[i].filterSrvId, true);
                 selectedTermsList.pop();
-                
+
                 // Remove any others with the same name
                 $scope.remove_filter($scope.panel.tags[i])
 
@@ -273,12 +291,11 @@ define([
                 // Add the newly selected term to the list
                 var selectedTerm = {};
                 selectedTerm.term = term;
-                selectedTerm.filterSrvId = filterSrv.set({type: 'terms', field: $scope.panel.tags[level], value: term.label, mandate: ('must')});
+                selectedTerm.filterSrvId = filterSrv.set({type: 'terms', field: $scope.panel.tags[level], value: term.label, mandate: ('must')},undefined,true);
                 selectedTermsList.push(selectedTerm);
-              } else {
-                // Other wise just refresh so the filter removals above take effect.
-                dashboard.refresh();
               }
+
+              dashboard.refresh();
 
             };
 

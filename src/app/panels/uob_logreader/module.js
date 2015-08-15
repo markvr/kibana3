@@ -89,6 +89,10 @@ define([
             $scope.get_data();
           });
           $scope.get_data();
+          $scope.$on('log_refresh', function () {
+            $scope.get_data();
+          });
+
         };
 
 
@@ -169,54 +173,77 @@ define([
           return filterValues;
         }
 
-        $scope.do_query = function (timestamp, offset, direction, equal_to) {
+        $scope.do_query = function (options) {
+          _.defaults(options, {
+            "equal_to": true,
+            "size" : $scope.panel.loadSize,
+            "direction" : "desc",
+            "use_timerange" : false,
+            "use_filters" : false
+          });
+
+
           var filters = [];
           var filterValues = $scope.get_filterValues();
           // filterSrv.getEjsObj() returns false if the filter is in-active, so we need to manually create it ourselves
           filters.push($scope.ejs.TermFilter("file.raw", filterValues["file.raw"]));
           filters.push($scope.ejs.TermFilter("host.raw", filterValues["host.raw"]));
 
-          if (typeof(equal_to) === "undefined") equal_to = true;
-
-          if (typeof(timestamp) !== "undefined" && typeof(offset) !== "undefined") {
+          // If we have both a timestamp and an offset create filters for them
+          if (typeof(options.timestamp) !== "undefined" && typeof(options.offset) !== "undefined") {
             var timeRangeFilter = $scope.ejs.RangeFilter("@timestamp");
             var offsetRangeFilter = $scope.ejs.RangeFilter("offset");
-            if (direction === "desc" && equal_to === true) {
-              timeRangeFilter.lte(timestamp);
-              offsetRangeFilter.lte(offset);
-            } else if (direction === "desc" && equal_to === false) {
-              timeRangeFilter.lt(timestamp);
-              offsetRangeFilter.lt(offset);
-            } else if (direction === "asc" && equal_to === true) {
-              timeRangeFilter.gte(timestamp)
-              offsetRangeFilter.gte(offset)
-            } else if (direction === "asc" && equal_to === false) {
-              timeRangeFilter.gt(timestamp)
-              offsetRangeFilter.gt(offset)
+            if (options.direction === "desc" && options.equal_to === true) {
+              timeRangeFilter.lte(options.timestamp);
+              offsetRangeFilter.lte(options.offset);
+            } else if (options.direction === "desc" && options.equal_to === false) {
+              timeRangeFilter.lt(options.timestamp);
+              offsetRangeFilter.lt(options.offset);
+            } else if (options.direction === "asc" && options.equal_to === true) {
+              timeRangeFilter.gte(options.timestamp)
+              offsetRangeFilter.gte(options.offset)
+            } else if (options.direction === "asc" && options.equal_to === false) {
+              timeRangeFilter.gt(options.timestamp)
+              offsetRangeFilter.gt(options.offset)
             }
             filters.push(offsetRangeFilter);
             filters.push(timeRangeFilter);
           }
 
-          var boolFilter = $scope.ejs.BoolFilter();
-          boolFilter.must(filters);
+
+          if (options.use_timerange) {
+            _.each(filterSrv.list(), function(filter) {
+              if (filter.field === "@timestamp") {
+                filters.push(filterSrv.getEjsObj(filter.id))
+              }
+            })
+          }
+
+
           var filteredQuery = $scope.ejs.FilteredQuery(
               $scope.ejs.QueryStringQuery("*"),
-              boolFilter
+              $scope.ejs.BoolFilter().must(filters)
           );
 
-          var sort = $scope.ejs.Sort("@timestamp").order(direction);
+          //var sort = $scope.ejs.Sort("@timestamp").order(options.direction);
           var request = $scope.ejs.Request().indices(dashboard.indices);
           request = request.query(filteredQuery)
-            .size($scope.panel.loadSize)
-            .sort(sort);
+            .size(options.size)
+            .sort("@timestamp", options.direction)
+            .sort("offset", options.direction);
 
+          $scope.populate_modal(request);
           return request.doSearch();
         }
 
         $scope.handle_results = function(promises) {
           var data = $scope.data;
           $q.all(promises).then(function (results) {
+             // Check for error and abort if found
+            if(!(_.isUndefined(results.error))) {
+              $scope.panel.error = $scope.parse_error(results.error);
+              return;
+            }
             console.log("handle_results")
             _.each(results, function (result) {
               if (!(_.isUndefined(results.error))) {
@@ -240,6 +267,7 @@ define([
           // The enabling/disabling of filters in uob_results causes excessive amounts
           // of refreshes.  Do some "flood control" so only one request is sent per results click
           if ($scope.disable_refresh) return;
+
           $scope.disable_refresh = true;
           setTimeout(function() {
             $scope.disable_refresh = false;
@@ -269,8 +297,18 @@ define([
               $scope.handle_results([$scope.do_query(undefined, undefined,  "desc")]);
             } else {
               var queries = [
-                $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "desc", false),
-                $scope.do_query(filterValues["log_timestamp"], filterValues["offset"], "asc", true),
+                $scope.do_query({
+                  "timestamp": filterValues["log_timestamp"],
+                  "offset": filterValues["offset"],
+                  "direction": "desc",
+                  "equal_to": false
+                }),
+                $scope.do_query({
+                  "timestamp": filterValues["log_timestamp"],
+                  "offset": filterValues["offset"],
+                  "direction": "asc",
+                  "equal_to": true
+                })
               ]
               $scope.handle_results(queries);
             }
@@ -281,32 +319,51 @@ define([
           }
         }
 
-        $scope.load_more = function(position) {
+        $scope.load_more = function(position, size) {
           var query;
           $scope.panelMeta.loading = true;
           console.log("load_more")
           if (position === "top") {
             var timestamp = $scope.data[0]["@timestamp"]
             var offset = $scope.data[0]["offset"]
-            query = $scope.do_query(timestamp, offset, "desc", false);
+            query = $scope.do_query({
+              "timestamp":timestamp,
+              "offset": offset,
+              "direction":  "desc",
+              "equal_to": false,
+              "size": size
+            });
           } else if(position === "bottom") {
             var timestamp = $scope.data[$scope.data.length-1]["@timestamp"];
             var offset = $scope.data[$scope.data.length-1]["offset"];
-            query = $scope.do_query(timestamp, offset, "asc", false);
+            query = $scope.do_query({
+              "timestamp": timestamp,
+              "offset": offset,
+              "direction": "asc",
+              "equal_to": false,
+              "size": size
+            });
           }
+
           $scope.handle_results([query])
           return query;
 
         }
 
-        $scope.goto = function(position) {
+        $scope.goto = function(position, use_timerange) {
           var query;
           $scope.panelMeta.loading = true;
           $scope.data = [];
           if (position === "start") {
-            query = $scope.do_query(undefined, undefined, "asc", true)
+            query = $scope.do_query({
+              "direction": "asc",
+              "use_timerange": use_timerange
+            });
           } else if (position === "end") {
-            query = $scope.do_query(undefined, undefined, "desc", true)
+            query = $scope.do_query({
+              "direction":"desc",
+              "use_timerange": use_timerange
+            })
           }
           $scope.handle_results([query]);
           return query;
@@ -314,7 +371,7 @@ define([
 
         $scope.do_follow = function() {
           if ($scope.follow_enabled) {
-            $scope.load_more("bottom").then(function() {
+            $scope.load_more("bottom", 10000).then(function() {
               var el = angular.element("#logfile")[0];
               el.scrollTop = el.scrollHeight;
               // Don't use setTimeout here - it doesn't fire until angular refreshes.
@@ -342,6 +399,10 @@ define([
           $scope.get_data();
         };
 
+
+        $scope.populate_modal = function(request) {
+          $scope.inspector = angular.toJson(JSON.parse(request.toString()),true);
+        };
 
         $scope.set_refresh = function (state) {
           $scope.refresh = state;
